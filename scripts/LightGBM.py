@@ -47,16 +47,18 @@ params = {
     'objective': 'binary',
     'metric': 'auc',
     'boosting_type': 'gbdt',
-    'learning_rate': 0.05,
+    'learning_rate': 0.02,
     'num_leaves': 256,
     'max_depth': -1,
     'min_child_samples': 50,
     'subsample': 0.8,
     'colsample_bytree': 0.8,
-    'n_estimators': 500,
+    'n_estimators': 2000,
     'verbose': -1,
     'random_state': 42,
-    'n_jobs': -1
+    'n_jobs': -1,
+    'reg_alpha': 0.5,
+    'reg_lambda': 0.5
 }
 
 # ========================
@@ -115,6 +117,6 @@ submission = pd.DataFrame({
     'TransactionID': test_ids,
     'isFraud': test_preds
 })
-submission.to_csv('../resources/submission.csv', index=False)
+submission.to_csv('../resources/submission_v2.0.csv', index=False)
 print(f"\nSubmission saved! Shape: {submission.shape}")
 print(submission.head())

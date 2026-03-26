@@ -1,0 +1,92 @@
+============================================================
+全部特征模型训练 - C特征PCA降维 - 对比多种模型
+============================================================
+
+[1] Loading data...
+Train: (590540, 221), Test: (506691, 220)
+Total features: 218
+
+[2] Feature Engineering...
+After feature engineering: 222 features
+
+[3] C features PCA (removing original C features)...
+Original C features: 14
+C-PCA explained variance: 0.9998
+After removing C features: 208 features
+After adding C-PCA: 218 features
+
+[4] Preparing data...
+Final features: 218
+
+[5] Normalizing data for LR and SVM...
+X_train shape: (590540, 218)
+X_test shape: (506691, 218)
+
+[6] Training models with 5-fold CV...
+
+--- Logistic Regression ---
+  Fold 1: AUC = 0.81825
+  Fold 2: AUC = 0.82181
+  Fold 3: AUC = 0.81380
+  Fold 4: AUC = 0.81469
+  Fold 5: AUC = 0.81683
+  Overall OOF AUC: 0.81705
+
+--- Random Forest ---
+  Fold 1: AUC = 0.89312
+  Fold 2: AUC = 0.89263
+  Fold 3: AUC = 0.88946
+  Fold 4: AUC = 0.89275
+  Fold 5: AUC = 0.89124
+  Overall OOF AUC: 0.89172
+
+--- LightGBM ---
+Training until validation scores don't improve for 50 rounds
+[200]	valid_0's auc: 0.962185
+[400]	valid_0's auc: 0.966605
+Did not meet early stopping. Best iteration is:
+[500]	valid_0's auc: 0.967127
+  Fold 1: AUC = 0.96713
+Training until validation scores don't improve for 50 rounds
+[200]	valid_0's auc: 0.963741
+[400]	valid_0's auc: 0.968541
+Did not meet early stopping. Best iteration is:
+[500]	valid_0's auc: 0.969508
+  Fold 2: AUC = 0.96951
+Training until validation scores don't improve for 50 rounds
+[200]	valid_0's auc: 0.959479
+[400]	valid_0's auc: 0.965424
+Did not meet early stopping. Best iteration is:
+[495]	valid_0's auc: 0.966797
+  Fold 3: AUC = 0.96680
+Training until validation scores don't improve for 50 rounds
+[200]	valid_0's auc: 0.963841
+[400]	valid_0's auc: 0.968638
+Did not meet early stopping. Best iteration is:
+[500]	valid_0's auc: 0.96932
+  Fold 4: AUC = 0.96932
+Training until validation scores don't improve for 50 rounds
+[200]	valid_0's auc: 0.964094
+[400]	valid_0's auc: 0.969325
+Did not meet early stopping. Best iteration is:
+[491]	valid_0's auc: 0.970115
+  Fold 5: AUC = 0.97011
+  Overall OOF AUC: 0.96855
+
+============================================================
+模型对比结果 (C特征PCA降维后)
+============================================================
+LightGBM            : OOF AUC = 0.96855
+RandomForest        : OOF AUC = 0.89172
+LogisticRegression  : OOF AUC = 0.81705
+
+Best model: LightGBM with AUC = 0.96855
+
+Submission saved to ../resources/submission_v4.0.csv
+Best model: LightGBM with AUC = 0.96855
+   TransactionID   isFraud
+0        3663549  0.000518
+1        3663550  0.000192
+2        3663551  0.000676
+3        3663552  0.001049
+4        3663553  0.000401

@@ -9,11 +9,29 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 import lightgbm as lgb
 import gc
+import sys
 import warnings
 warnings.filterwarnings('ignore')
 
+# 日志输出到文件
+class Logger:
+    def __init__(self, filename):
+        self.terminal = sys.stdout
+        self.log = open(filename, 'w', encoding='utf-8')
+    
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+    
+    def flush(self):
+        self.terminal.flush()
+        self.log.flush()
+
+log = Logger('../result/log.txt')
+sys.stdout = log
+
 print("=" * 60)
-print("全部特征模型训练 - 保留C特征PCA - 对比多种模型")
+print("全部特征模型训练 - C特征PCA降维 - 对比多种模型")
 print("=" * 60)
 
 # ========================
@@ -58,12 +76,12 @@ test['TransactionAmt_cents'] = test['TransactionAmt'] % 1
 print(f"After feature engineering: {train.shape[1]} features")
 
 # ========================
-# 3. C特征PCA（保留）
+# 3. C特征PCA（删除原始C特征）
 # ========================
-print("\n[3] C features PCA...")
+print("\n[3] C features PCA (removing original C features)...")
 
 c_cols = [c for c in train.columns if c.startswith('C')]
-print(f"C features: {len(c_cols)}")
+print(f"Original C features: {len(c_cols)}")
 
 # 标准化C特征
 scaler_c = StandardScaler()
@@ -78,11 +96,18 @@ test_c_pca = pca.transform(test_c_scaled)
 
 print(f"C-PCA explained variance: {pca.explained_variance_ratio_.sum():.4f}")
 
-# 添加PCA特征到数据集
+# 删除原始C特征
+train = train.drop(columns=c_cols)
+test = test.drop(columns=c_cols)
+print(f"After removing C features: {train.shape[1]} features")
+
+# 添加PCA特征
 pca_cols = [f'C_pca_{i}' for i in range(n_pca)]
-for i, col in enumerate(pca_cols):
-    train[col] = train_c_pca[:, i]
-    test[col] = test_c_pca[:, i]
+train_c_pca_df = pd.DataFrame(train_c_pca, columns=pca_cols)
+test_c_pca_df = pd.DataFrame(test_c_pca, columns=pca_cols)
+
+train = pd.concat([train.reset_index(drop=True), train_c_pca_df], axis=1)
+test = pd.concat([test.reset_index(drop=True), test_c_pca_df], axis=1)
 
 print(f"After adding C-PCA: {train.shape[1]} features")
 
@@ -254,7 +279,7 @@ print(f"  Overall OOF AUC: {auc_lgb:.5f}")
 # 7. 结果汇总
 # ========================
 print("\n" + "=" * 60)
-print("模型对比结果 (全部特征 + C特征PCA)")
+print("模型对比结果 (C特征PCA降维后)")
 print("=" * 60)
 
 for name, res in sorted(results.items(), key=lambda x: x[1]['auc'], reverse=True):
@@ -274,3 +299,5 @@ best_submission.to_csv('../resources/submission_v4.0.csv', index=False)
 print(f"\nSubmission saved to ../resources/submission_v4.0.csv")
 print(f"Best model: {best_model[0]} with AUC = {best_model[1]['auc']:.5f}")
 print(best_submission.head())
+
+log.log.close()

@@ -1,3 +1,6 @@
+*.json
+*.js
+
 catboost_info/
 node_modules/
 

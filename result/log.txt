@@ -25,68 +25,119 @@ X_test shape: (506691, 218)
 [6] Training models with 5-fold CV...
 
 --- Logistic Regression ---
-  Fold 1: AUC = 0.81825
-  Fold 2: AUC = 0.82181
-  Fold 3: AUC = 0.81380
-  Fold 4: AUC = 0.81469
-  Fold 5: AUC = 0.81683
-  Overall OOF AUC: 0.81705
+  Fold 1: AUC = 0.82908
+  Fold 2: AUC = 0.82897
+  Fold 3: AUC = 0.82358
+  Fold 4: AUC = 0.82411
+  Fold 5: AUC = 0.82529
+  Overall OOF AUC: 0.82616
 
 --- Random Forest ---
-  Fold 1: AUC = 0.89312
-  Fold 2: AUC = 0.89263
-  Fold 3: AUC = 0.88946
-  Fold 4: AUC = 0.89275
-  Fold 5: AUC = 0.89124
-  Overall OOF AUC: 0.89172
+  Fold 1: AUC = 0.90704
+  Fold 2: AUC = 0.90662
+  Fold 3: AUC = 0.90348
+  Fold 4: AUC = 0.90615
+  Fold 5: AUC = 0.90595
+  Overall OOF AUC: 0.90575
 
 --- LightGBM ---
 Training until validation scores don't improve for 50 rounds
-[200]	valid_0's auc: 0.962185
-[400]	valid_0's auc: 0.966605
-Did not meet early stopping. Best iteration is:
-[500]	valid_0's auc: 0.967127
-  Fold 1: AUC = 0.96713
+[200]	valid_0's auc: 0.941651
+[400]	valid_0's auc: 0.952026
+[600]	valid_0's auc: 0.956153
+[800]	valid_0's auc: 0.958442
+[1000]	valid_0's auc: 0.959814
+[1200]	valid_0's auc: 0.960698
+[1400]	valid_0's auc: 0.96128
+[1600]	valid_0's auc: 0.961649
+Early stopping, best iteration is:
+[1566]	valid_0's auc: 0.961677
+  Fold 1: AUC = 0.96168
 Training until validation scores don't improve for 50 rounds
-[200]	valid_0's auc: 0.963741
-[400]	valid_0's auc: 0.968541
-Did not meet early stopping. Best iteration is:
-[500]	valid_0's auc: 0.969508
-  Fold 2: AUC = 0.96951
+[200]	valid_0's auc: 0.942812
+[400]	valid_0's auc: 0.953346
+[600]	valid_0's auc: 0.957854
+[800]	valid_0's auc: 0.960746
+[1000]	valid_0's auc: 0.962474
+[1200]	valid_0's auc: 0.963632
+[1400]	valid_0's auc: 0.96429
+[1600]	valid_0's auc: 0.964831
+[1800]	valid_0's auc: 0.965545
+[2000]	valid_0's auc: 0.966174
+[2200]	valid_0's auc: 0.966597
+Early stopping, best iteration is:
+[2329]	valid_0's auc: 0.966693
+  Fold 2: AUC = 0.96669
 Training until validation scores don't improve for 50 rounds
-[200]	valid_0's auc: 0.959479
-[400]	valid_0's auc: 0.965424
-Did not meet early stopping. Best iteration is:
-[495]	valid_0's auc: 0.966797
-  Fold 3: AUC = 0.96680
+[200]	valid_0's auc: 0.93854
+[400]	valid_0's auc: 0.949509
+[600]	valid_0's auc: 0.954421
+[800]	valid_0's auc: 0.957638
+[1000]	valid_0's auc: 0.959846
+[1200]	valid_0's auc: 0.961111
+[1400]	valid_0's auc: 0.962181
+[1600]	valid_0's auc: 0.962793
+[1800]	valid_0's auc: 0.962926
+[2000]	valid_0's auc: 0.963111
+[2200]	valid_0's auc: 0.96336
+[2400]	valid_0's auc: 0.963519
+[2600]	valid_0's auc: 0.963891
+[2800]	valid_0's auc: 0.964111
+[3000]	valid_0's auc: 0.964293
+[3200]	valid_0's auc: 0.964318
+Early stopping, best iteration is:
+[3154]	valid_0's auc: 0.964373
+  Fold 3: AUC = 0.96437
 Training until validation scores don't improve for 50 rounds
-[200]	valid_0's auc: 0.963841
-[400]	valid_0's auc: 0.968638
-Did not meet early stopping. Best iteration is:
-[500]	valid_0's auc: 0.96932
-  Fold 4: AUC = 0.96932
+[200]	valid_0's auc: 0.941712
+[400]	valid_0's auc: 0.953633
+[600]	valid_0's auc: 0.958669
+[800]	valid_0's auc: 0.961723
+[1000]	valid_0's auc: 0.963622
+[1200]	valid_0's auc: 0.964901
+[1400]	valid_0's auc: 0.96605
+[1600]	valid_0's auc: 0.966739
+[1800]	valid_0's auc: 0.967167
+[2000]	valid_0's auc: 0.967525
+[2200]	valid_0's auc: 0.967806
+Early stopping, best iteration is:
+[2330]	valid_0's auc: 0.967967
+  Fold 4: AUC = 0.96797
 Training until validation scores don't improve for 50 rounds
-[200]	valid_0's auc: 0.964094
-[400]	valid_0's auc: 0.969325
-Did not meet early stopping. Best iteration is:
-[491]	valid_0's auc: 0.970115
-  Fold 5: AUC = 0.97011
-  Overall OOF AUC: 0.96855
+[200]	valid_0's auc: 0.940333
+[400]	valid_0's auc: 0.952837
+[600]	valid_0's auc: 0.957542
+[800]	valid_0's auc: 0.960224
+[1000]	valid_0's auc: 0.962087
+[1200]	valid_0's auc: 0.963423
+[1400]	valid_0's auc: 0.964673
+[1600]	valid_0's auc: 0.965617
+[1800]	valid_0's auc: 0.966338
+[2000]	valid_0's auc: 0.966846
+[2200]	valid_0's auc: 0.96699
+[2400]	valid_0's auc: 0.967348
+[2600]	valid_0's auc: 0.967637
+[2800]	valid_0's auc: 0.967946
+[3000]	valid_0's auc: 0.968114
+Early stopping, best iteration is:
+[3080]	valid_0's auc: 0.968222
+  Fold 5: AUC = 0.96822
+  Overall OOF AUC: 0.96459
 
 ============================================================
 模型对比结果 (C特征PCA降维后)
 ============================================================
-LightGBM            : OOF AUC = 0.96855
-RandomForest        : OOF AUC = 0.89172
-LogisticRegression  : OOF AUC = 0.81705
+LightGBM            : OOF AUC = 0.96459
+RandomForest        : OOF AUC = 0.90575
+LogisticRegression  : OOF AUC = 0.82616
 
-Best model: LightGBM with AUC = 0.96855
+Best model: LightGBM with AUC = 0.96459
 
-Submission saved to ../resources/submission_v4.0.csv
-Best model: LightGBM with AUC = 0.96855
+Submission saved to ../result/submission_v5.0.csv
+Best model: LightGBM with AUC = 0.96459
    TransactionID   isFraud
-0        3663549  0.000518
-1        3663550  0.000192
-2        3663551  0.000676
-3        3663552  0.001049
-4        3663553  0.000401
+0        3663549  0.001249
+1        3663550  0.000617
+2        3663551  0.008933
+3        3663552  0.004159
+4        3663553  0.002537

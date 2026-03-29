@@ -6,7 +6,6 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import roc_auc_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
 import lightgbm as lgb
 import gc
 import sys
@@ -33,6 +32,8 @@ sys.stdout = log
 print("=" * 60)
 print("全部特征模型训练 - C特征PCA降维 - 对比多种模型")
 print("=" * 60)
+
+
 
 # ========================
 # 1. 加载数据
@@ -175,7 +176,13 @@ for fold, (train_idx, val_idx) in enumerate(skf.split(X_train_scaled, y)):
     X_tr, X_val = X_train_scaled[train_idx], X_train_scaled[val_idx]
     y_tr, y_val = y[train_idx], y[val_idx]
     
-    model = LogisticRegression(max_iter=500, random_state=42, n_jobs=-1, solver='lbfgs')
+    model = LogisticRegression(
+        max_iter=500, 
+        random_state=42, 
+        n_jobs=-1, 
+        solver='lbfgs',
+        class_weight='balanced'  # 不平衡处理
+    )
     model.fit(X_tr, y_tr)
     
     val_pred = model.predict_proba(X_val)[:, 1]
@@ -208,7 +215,8 @@ for fold, (train_idx, val_idx) in enumerate(skf.split(X_train_all, y)):
         max_depth=12,
         min_samples_split=50,
         random_state=42,
-        n_jobs=-1
+        n_jobs=-1,
+        class_weight='balanced'  # 不平衡处理
     )
     model.fit(X_tr, y_tr)
     
@@ -237,16 +245,19 @@ params = {
     'objective': 'binary',
     'metric': 'auc',
     'boosting_type': 'gbdt',
-    'learning_rate': 0.05,
-    'num_leaves': 256,
+    'learning_rate': 0.02,
+    'num_leaves': 128,
     'max_depth': -1,
-    'min_child_samples': 50,
+    'min_child_samples': 100,
     'subsample': 0.8,
     'colsample_bytree': 0.8,
-    'n_estimators': 500,
+    'n_estimators': 10000,
     'verbose': -1,
     'random_state': 42,
-    'n_jobs': -1
+    'n_jobs': -1,
+    'reg_alpha': 0.1,
+    'reg_lambda': 0.1,
+    'is_unbalance': True  # 不平衡处理
 }
 
 for fold, (train_idx, val_idx) in enumerate(skf.split(X_train_all, y)):
@@ -294,9 +305,9 @@ best_submission = pd.DataFrame({
     'TransactionID': test_ids,
     'isFraud': best_model[1]['test']
 })
-best_submission.to_csv('../resources/submission_v4.0.csv', index=False)
+best_submission.to_csv('../result/submission_v5.0.csv', index=False)
 
-print(f"\nSubmission saved to ../resources/submission_v4.0.csv")
+print(f"\nSubmission saved to ../result/submission_v5.0.csv")
 print(f"Best model: {best_model[0]} with AUC = {best_model[1]['auc']:.5f}")
 print(best_submission.head())
 

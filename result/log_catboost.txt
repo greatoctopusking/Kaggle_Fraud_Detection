@@ -1,0 +1,129 @@
+============================================================
+CatBoost模型训练 - C特征PCA降维 - 对比多种模型
+注意：不使用不平衡处理，加强正则化防止过拟合
+============================================================
+
+[1] Loading data...
+Train: (590540, 221), Test: (506691, 220)
+Total features: 218
+
+[2] Feature Engineering...
+After feature engineering: 222 features
+
+[3] C features PCA (removing original C features)...
+Original C features: 14
+C-PCA explained variance: 0.9998
+After removing C features: 208 features
+After adding C-PCA: 218 features
+
+[4] Preparing data...
+Final features: 218
+X_train shape: (590540, 218)
+X_test shape: (506691, 218)
+
+[5] Training models with 5-fold CV...
+
+--- Logistic Regression (scaled data) ---
+  Fold 1: AUC = 0.81848
+  Fold 2: AUC = 0.82162
+  Fold 3: AUC = 0.81376
+  Fold 4: AUC = 0.81432
+  Fold 5: AUC = 0.81689
+  Overall OOF AUC: 0.81698
+
+--- Random Forest ---
+  Fold 1: AUC = 0.89312
+  Fold 2: AUC = 0.89263
+  Fold 3: AUC = 0.88946
+  Fold 4: AUC = 0.89275
+  Fold 5: AUC = 0.89124
+  Overall OOF AUC: 0.89172
+
+--- CatBoost (with strong regularization) ---
+
+  Fold 1/5:
+0:	learn: 0.6422458	test: 0.6422944	best: 0.6422944 (0)	total: 189ms	remaining: 3m 8s
+200:	learn: 0.0955978	test: 0.0952959	best: 0.0952959 (200)	total: 10.4s	remaining: 41.3s
+400:	learn: 0.0893521	test: 0.0894969	best: 0.0894969 (400)	total: 20.6s	remaining: 30.8s
+600:	learn: 0.0854057	test: 0.0861436	best: 0.0861436 (600)	total: 30.8s	remaining: 20.4s
+800:	learn: 0.0823509	test: 0.0836531	best: 0.0836531 (800)	total: 40.8s	remaining: 10.1s
+999:	learn: 0.0800588	test: 0.0818641	best: 0.0818641 (999)	total: 50.6s	remaining: 0us
+
+bestTest = 0.08186409302
+bestIteration = 999
+
+  Fold 1 AUC: 0.91276
+
+  Fold 2/5:
+0:	learn: 0.6405416	test: 0.6406677	best: 0.6406677 (0)	total: 52ms	remaining: 52s
+200:	learn: 0.0956965	test: 0.0956981	best: 0.0956981 (200)	total: 10.6s	remaining: 42.1s
+400:	learn: 0.0896933	test: 0.0902144	best: 0.0902144 (400)	total: 20.7s	remaining: 30.9s
+600:	learn: 0.0857268	test: 0.0867396	best: 0.0867396 (600)	total: 30.9s	remaining: 20.5s
+800:	learn: 0.0826600	test: 0.0840447	best: 0.0840447 (800)	total: 41.2s	remaining: 10.2s
+999:	learn: 0.0802362	test: 0.0820316	best: 0.0820316 (999)	total: 51.3s	remaining: 0us
+
+bestTest = 0.0820315672
+bestIteration = 999
+
+  Fold 2 AUC: 0.91269
+
+  Fold 3/5:
+0:	learn: 0.6419021	test: 0.6419355	best: 0.6419355 (0)	total: 52.1ms	remaining: 52s
+200:	learn: 0.0954950	test: 0.0961781	best: 0.0961781 (200)	total: 10.6s	remaining: 42s
+400:	learn: 0.0892136	test: 0.0906772	best: 0.0906772 (400)	total: 20.9s	remaining: 31.2s
+600:	learn: 0.0853018	test: 0.0874764	best: 0.0874764 (600)	total: 31.3s	remaining: 20.8s
+800:	learn: 0.0822111	test: 0.0849950	best: 0.0849950 (800)	total: 41.7s	remaining: 10.4s
+999:	learn: 0.0798976	test: 0.0832052	best: 0.0832052 (999)	total: 51.8s	remaining: 0us
+
+bestTest = 0.08320523908
+bestIteration = 999
+
+  Fold 3 AUC: 0.90386
+
+  Fold 4/5:
+0:	learn: 0.6423305	test: 0.6424251	best: 0.6424251 (0)	total: 46.1ms	remaining: 46.1s
+200:	learn: 0.0951191	test: 0.0965614	best: 0.0965614 (200)	total: 10.5s	remaining: 41.7s
+400:	learn: 0.0888081	test: 0.0909176	best: 0.0909176 (400)	total: 20.9s	remaining: 31.2s
+600:	learn: 0.0848159	test: 0.0875705	best: 0.0875705 (600)	total: 31.3s	remaining: 20.8s
+800:	learn: 0.0818280	test: 0.0851096	best: 0.0851096 (800)	total: 41.6s	remaining: 10.3s
+999:	learn: 0.0793899	test: 0.0831680	best: 0.0831680 (999)	total: 51.7s	remaining: 0us
+
+bestTest = 0.08316799406
+bestIteration = 999
+
+  Fold 4 AUC: 0.90931
+
+  Fold 5/5:
+0:	learn: 0.6422136	test: 0.6423628	best: 0.6423628 (0)	total: 44.9ms	remaining: 44.9s
+200:	learn: 0.0952009	test: 0.0975783	best: 0.0975783 (200)	total: 10.6s	remaining: 42s
+400:	learn: 0.0890660	test: 0.0919346	best: 0.0919346 (400)	total: 20.8s	remaining: 31.1s
+600:	learn: 0.0849315	test: 0.0882305	best: 0.0882305 (600)	total: 31.3s	remaining: 20.8s
+800:	learn: 0.0819685	test: 0.0856610	best: 0.0856610 (800)	total: 41.9s	remaining: 10.4s
+999:	learn: 0.0796073	test: 0.0837116	best: 0.0837116 (999)	total: 52s	remaining: 0us
+
+bestTest = 0.08371155332
+bestIteration = 999
+
+  Fold 5 AUC: 0.91037
+  Overall OOF AUC: 0.90975
+
+--- Model Ensemble (Simple Average) ---
+  Ensemble OOF AUC: 0.90464
+
+============================================================
+模型对比结果
+============================================================
+CatBoost            : OOF AUC = 0.90975
+Ensemble            : OOF AUC = 0.90464
+RandomForest        : OOF AUC = 0.89172
+LogisticRegression  : OOF AUC = 0.81698
+
+Best model: CatBoost with AUC = 0.90975
+
+Submission saved to ../resources/submission_catboost.csv
+   TransactionID   isFraud
+0        3663549  0.004012
+1        3663550  0.007448
+2        3663551  0.016593
+3        3663552  0.004641
+4        3663553  0.008786

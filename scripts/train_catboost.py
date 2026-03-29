@@ -6,7 +6,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import roc_auc_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-import lightgbm as lgb
+from catboost import CatBoostClassifier
 import gc
 import sys
 import warnings
@@ -26,14 +26,13 @@ class Logger:
         self.terminal.flush()
         self.log.flush()
 
-log = Logger('../result/log.txt')
+log = Logger('../result/log_catboost.txt')
 sys.stdout = log
 
 print("=" * 60)
-print("全部特征模型训练 - C特征PCA降维 - 对比多种模型")
+print("CatBoost模型训练 - C特征PCA降维 - 对比多种模型")
+print("注意：不使用不平衡处理，加强正则化防止过拟合")
 print("=" * 60)
-
-
 
 # ========================
 # 1. 加载数据
@@ -125,38 +124,20 @@ test = test.fillna(-999)
 feature_cols = train.columns.tolist()
 print(f"Final features: {len(feature_cols)}")
 
-# ========================
-# 5. 数据归一化（用于逻辑回归和SVM）
-# ========================
-print("\n[5] Normalizing data for LR and SVM...")
-
-# 分离数值列（用于标准化）
-numeric_cols = train.select_dtypes(include=[np.number]).columns.tolist()
-
-scaler = StandardScaler()
-train_scaled = scaler.fit_transform(train[numeric_cols])
-test_scaled = scaler.transform(test[numeric_cols])
-
-train_scaled_df = pd.DataFrame(train_scaled, columns=numeric_cols)
-test_scaled_df = pd.DataFrame(test_scaled, columns=numeric_cols)
-
 # 转换回numpy
-X_train_all = train.values.astype(np.float32)
-X_test_all = test.values.astype(np.float32)
+X_train = train.values.astype(np.float32)
+X_test = test.values.astype(np.float32)
 
-X_train_scaled = train_scaled_df.values.astype(np.float32)
-X_test_scaled = test_scaled_df.values.astype(np.float32)
+print(f"X_train shape: {X_train.shape}")
+print(f"X_test shape: {X_test.shape}")
 
-print(f"X_train shape: {X_train_all.shape}")
-print(f"X_test shape: {X_test_all.shape}")
-
-del train, test, train_scaled_df, test_scaled_df
+del train, test
 gc.collect()
 
 # ========================
-# 6. 模型对比
+# 5. 模型对比
 # ========================
-print("\n[6] Training models with 5-fold CV...")
+print("\n[5] Training models with 5-fold CV...")
 
 n_folds = 5
 skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=42)
@@ -166,23 +147,22 @@ results = {}
 # ========================
 # Model 1: Logistic Regression
 # ========================
-print("\n--- Logistic Regression ---")
+print("\n--- Logistic Regression (scaled data) ---")
+
+# 标准化用于LR
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
 oof_lr = np.zeros(len(y))
-test_lr = np.zeros(len(X_test_all))
+test_lr = np.zeros(len(X_test))
 fold_scores_lr = []
 
 for fold, (train_idx, val_idx) in enumerate(skf.split(X_train_scaled, y)):
     X_tr, X_val = X_train_scaled[train_idx], X_train_scaled[val_idx]
     y_tr, y_val = y[train_idx], y[val_idx]
     
-    model = LogisticRegression(
-        max_iter=500, 
-        random_state=42, 
-        n_jobs=-1, 
-        solver='lbfgs',
-        class_weight='balanced'  # 不平衡处理
-    )
+    model = LogisticRegression(max_iter=500, random_state=42, n_jobs=-1, solver='lbfgs')
     model.fit(X_tr, y_tr)
     
     val_pred = model.predict_proba(X_val)[:, 1]
@@ -203,11 +183,11 @@ print(f"  Overall OOF AUC: {auc_lr:.5f}")
 print("\n--- Random Forest ---")
 
 oof_rf = np.zeros(len(y))
-test_rf = np.zeros(len(X_test_all))
+test_rf = np.zeros(len(X_test))
 fold_scores_rf = []
 
-for fold, (train_idx, val_idx) in enumerate(skf.split(X_train_all, y)):
-    X_tr, X_val = X_train_all[train_idx], X_train_all[val_idx]
+for fold, (train_idx, val_idx) in enumerate(skf.split(X_train, y)):
+    X_tr, X_val = X_train[train_idx], X_train[val_idx]
     y_tr, y_val = y[train_idx], y[val_idx]
     
     model = RandomForestClassifier(
@@ -215,14 +195,13 @@ for fold, (train_idx, val_idx) in enumerate(skf.split(X_train_all, y)):
         max_depth=12,
         min_samples_split=50,
         random_state=42,
-        n_jobs=-1,
-        class_weight='balanced'  # 不平衡处理
+        n_jobs=-1
     )
     model.fit(X_tr, y_tr)
     
     val_pred = model.predict_proba(X_val)[:, 1]
     oof_rf[val_idx] = val_pred
-    test_rf += model.predict_proba(X_test_all)[:, 1] / n_folds
+    test_rf += model.predict_proba(X_test)[:, 1] / n_folds
     
     fold_auc = roc_auc_score(y_val, val_pred)
     fold_scores_rf.append(fold_auc)
@@ -233,63 +212,72 @@ results['RandomForest'] = {'oof': oof_rf, 'test': test_rf, 'auc': auc_rf}
 print(f"  Overall OOF AUC: {auc_rf:.5f}")
 
 # ========================
-# Model 3: LightGBM
+# Model 3: CatBoost
 # ========================
-print("\n--- LightGBM ---")
+print("\n--- CatBoost (with strong regularization) ---")
 
-oof_lgb = np.zeros(len(y))
-test_lgb = np.zeros(len(X_test_all))
-fold_scores_lgb = []
+oof_cb = np.zeros(len(y))
+test_cb = np.zeros(len(X_test))
+fold_scores_cb = []
 
-params = {
-    'objective': 'binary',
-    'metric': 'auc',
-    'boosting_type': 'gbdt',
-    'learning_rate': 0.02,
-    'num_leaves': 64,
-    'max_depth': -1,
-    'min_child_samples': 200,
-    'subsample': 0.8,
-    'colsample_bytree': 0.8,
-    'n_estimators': 10000,
-    'verbose': -1,
-    'random_state': 42,
-    'n_jobs': -1,
-    'reg_alpha': 0.5,
-    'reg_lambda': 0.5,  # 不平衡处理
+catboost_params = {
+    'iterations': 1000,
+    'learning_rate': 0.03,
+    'depth': 6,
+    'l2_leaf_reg': 10,           # L2正则化，增大防止过拟合
+    'bagging_temperature': 0.8,  # Bagging温度
+    'random_strength': 1.0,      # 随机强度
+    'border_count': 128,
+    'task_type': 'CPU',
+    'random_seed': 42,
+    'verbose': 200,
+    'early_stopping_rounds': 100
 }
 
-for fold, (train_idx, val_idx) in enumerate(skf.split(X_train_all, y)):
-    X_tr, X_val = X_train_all[train_idx], X_train_all[val_idx]
+for fold, (train_idx, val_idx) in enumerate(skf.split(X_train, y)):
+    print(f"\n  Fold {fold+1}/{n_folds}:")
+    X_tr, X_val = X_train[train_idx], X_train[val_idx]
     y_tr, y_val = y[train_idx], y[val_idx]
     
-    model = lgb.LGBMClassifier(**params)
+    model = CatBoostClassifier(**catboost_params)
     model.fit(
         X_tr, y_tr,
-        eval_set=[(X_val, y_val)],
-        callbacks=[
-            lgb.early_stopping(stopping_rounds=50),
-            lgb.log_evaluation(200)
-        ]
+        eval_set=(X_val, y_val),
+        use_best_model=True
     )
     
     val_pred = model.predict_proba(X_val)[:, 1]
-    oof_lgb[val_idx] = val_pred
-    test_lgb += model.predict_proba(X_test_all)[:, 1] / n_folds
+    oof_cb[val_idx] = val_pred
+    test_cb += model.predict_proba(X_test)[:, 1] / n_folds
     
     fold_auc = roc_auc_score(y_val, val_pred)
-    fold_scores_lgb.append(fold_auc)
-    print(f"  Fold {fold+1}: AUC = {fold_auc:.5f}")
+    fold_scores_cb.append(fold_auc)
+    print(f"  Fold {fold+1} AUC: {fold_auc:.5f}")
+    
+    del model
+    gc.collect()
 
-auc_lgb = roc_auc_score(y, oof_lgb)
-results['LightGBM'] = {'oof': oof_lgb, 'test': test_lgb, 'auc': auc_lgb}
-print(f"  Overall OOF AUC: {auc_lgb:.5f}")
+auc_cb = roc_auc_score(y, oof_cb)
+results['CatBoost'] = {'oof': oof_cb, 'test': test_cb, 'auc': auc_cb}
+print(f"  Overall OOF AUC: {auc_cb:.5f}")
+
+# ========================
+# 6. 模型融合（简单平均）
+# ========================
+print("\n--- Model Ensemble (Simple Average) ---")
+
+# CatBoost + RandomForest 融合
+oof_ensemble = (oof_rf + oof_cb) / 2
+test_ensemble = (test_rf + test_cb) / 2
+auc_ensemble = roc_auc_score(y, oof_ensemble)
+results['Ensemble'] = {'oof': oof_ensemble, 'test': test_ensemble, 'auc': auc_ensemble}
+print(f"  Ensemble OOF AUC: {auc_ensemble:.5f}")
 
 # ========================
 # 7. 结果汇总
 # ========================
 print("\n" + "=" * 60)
-print("模型对比结果 (C特征PCA降维后)")
+print("模型对比结果")
 print("=" * 60)
 
 for name, res in sorted(results.items(), key=lambda x: x[1]['auc'], reverse=True):
@@ -299,15 +287,14 @@ for name, res in sorted(results.items(), key=lambda x: x[1]['auc'], reverse=True
 best_model = max(results.items(), key=lambda x: x[1]['auc'])
 print(f"\nBest model: {best_model[0]} with AUC = {best_model[1]['auc']:.5f}")
 
-# 保存最佳submission到resources
+# 保存submission到resources
 best_submission = pd.DataFrame({
     'TransactionID': test_ids,
     'isFraud': best_model[1]['test']
 })
-best_submission.to_csv('../result/submission_v5.0.csv', index=False)
+best_submission.to_csv('../resources/submission_catboost.csv', index=False)
 
-print(f"\nSubmission saved to ../result/submission_v5.0.csv")
-print(f"Best model: {best_model[0]} with AUC = {best_model[1]['auc']:.5f}")
+print(f"\nSubmission saved to ../resources/submission_catboost.csv")
 print(best_submission.head())
 
 log.log.close()
